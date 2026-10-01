@@ -1,0 +1,40 @@
+# =============================================================
+# synth_sky130.ys
+# ASIC synthesis targeting the open-source SkyWater sky130 HD
+# standard-cell library. This is the same style of script
+# OpenLane runs internally (it will actually run its own; this
+# file is here so you can also run synthesis standalone / debug it).
+#
+# Requires: open_pdks / sky130A installed, e.g. at
+#   $PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+#
+# Run:
+#   yosys -D LIBERTY=$PDK_ROOT/sky130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__tt_025C_1v80.lib \
+#         -s synth/synth_sky130.ys
+# =============================================================
+
+read_verilog rtl/full_adder.v
+read_verilog rtl/ripple_carry_adder.v
+read_verilog rtl/adder_subtractor.v
+read_verilog rtl/multiplier.v
+read_verilog rtl/divider.v
+read_verilog rtl/calculator_top.v
+
+hierarchy -check -top calculator_top
+proc
+flatten
+opt
+fsm
+opt
+memory
+opt
+techmap
+opt
+
+# Map flip-flops and combinational logic onto the sky130 HD cells
+dfflibmap -liberty $LIBERTY
+abc -liberty $LIBERTY
+opt_clean
+
+stat -liberty $LIBERTY
+write_verilog -noattr synth/out/calculator_top_sky130_netlist.v

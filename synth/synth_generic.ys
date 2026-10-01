@@ -1,0 +1,28 @@
+# =============================================================
+# synth_generic.ys
+# Quick technology-independent synthesis check (no PDK needed).
+# Run:  yosys -s synth/synth_generic.ys
+# Produces a generic-cell netlist + a stats/area report so you can
+# sanity-check the design (gate count, flip-flop count, etc.)
+# before committing to a full PDK-targeted run.
+# =============================================================
+
+read_verilog rtl/full_adder.v
+read_verilog rtl/ripple_carry_adder.v
+read_verilog rtl/adder_subtractor.v
+read_verilog rtl/multiplier.v
+read_verilog rtl/divider.v
+read_verilog rtl/calculator_top.v
+
+hierarchy -check -top calculator_top
+proc
+opt
+fsm
+opt
+memory
+opt
+techmap
+opt
+
+stat
+write_verilog -noattr synth/out/calculator_top_generic_netlist.v
